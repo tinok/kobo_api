@@ -91,9 +91,7 @@ if __name__ == "__main__":
             type_ = default_type
             if len(sys.argv) > 2:
                 type_ = sys.argv[2]
-
             create_export(type_)
-
         elif sys.argv[1] == "list":
             list_exports()
         elif sys.argv[1] == "latest":
