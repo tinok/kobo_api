@@ -10,7 +10,7 @@ asset = "koboassetid"
 url = "https://kobo.humanitarianresponse.info/"
 
 # create new csv export
-def create_csv():
+def create_export():
 	create_export = requests.post(
 			url+'exports/', 
 			data={'source': url+'assets/'+asset+'/', 'type': 'csv'}, 
@@ -19,10 +19,10 @@ def create_csv():
 	print(create_export.text)
 
 # see previous exports created
-def exports_list():
+def list_exports():
 	payload = {'q': 'source:'+asset}
-	get_exports = requests.get(
+	list_exports = requests.get(
 			url+'exports/', 
 			params=payload, 
 			auth=(user, passw))
-	print(get_exports.json())
+	print(list_exports.json())
