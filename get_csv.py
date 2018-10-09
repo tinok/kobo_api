@@ -7,12 +7,13 @@ import requests
 user = "username"
 passw = "password"
 asset = "koboassetid"
+url = "https://kobo.humanitarianresponse.info/"
 
 # create new csv export
 def create_csv():
 	create_export = requests.post(
-			'https://kobo.humanitarianresponse.info/exports/', 
-			data={'source': 'https://kobo.humanitarianresponse.info/assets/'+asset+'/', 'type': 'csv'}, 
+			url+'exports/', 
+			data={'source': url+'assets/'+asset+'/', 'type': 'csv'}, 
 			auth=(user, passw))
 	print(create_export.status_code)
 	print(create_export.text)
@@ -21,7 +22,7 @@ def create_csv():
 def exports_list():
 	payload = {'q': 'source:'+asset}
 	get_exports = requests.get(
-			'https://kobo.humanitarianresponse.info/exports/', 
+			url+'exports/', 
 			params=payload, 
 			auth=(user, passw))
 	print(get_exports.json())
