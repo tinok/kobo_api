@@ -125,4 +125,4 @@ if __name__ == "__main__":
         else:
             print("Invalid choice")
     else:
-        create_export(default_type)
+        create_export(default_type,default_lang,default_fields_from_all_versions,default_hierarchy_in_labels,default_group_sep)
