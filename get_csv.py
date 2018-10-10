@@ -19,7 +19,14 @@ user = "username"
 passw = "password"
 asset = "koboassetid"
 url = "https://kobo.humanitarianresponse.info/"
+
+# These variables define the default export. Each value can be overwritten when running the `create' command
+# e.g. `create xml 'English (en_US)' true'. It's possible to skip some arguments at the end but they need to be passed in the same order. 
 default_type = "csv"
+default_lang = "xml"
+default_fields_from_all_versions = "true"
+default_hierarchy_in_labels = "false"
+default_group_sep = "/"
 
 
 def parse_env_variables():
@@ -28,21 +35,24 @@ def parse_env_variables():
            os.getenv("KOBO_ASSET", asset), \
            os.getenv("KOBO_URL", url), \
 
-def create_export(type_="csv"):
+def create_export(type_,lang_,fields_from_all_versions_,hierarchy_in_labels_,group_sep_):
     """
     Creates a new export.
     Prints the response of API if it's successful.
     :param type_: str.
     """
 
-    if type_ not in ["csv", "json"]:
-        print("Unsupported format")
+    if type_ not in ["csv", "xls"]:
+        print("Only csv and xls are supported with this method")
         sys.exit()
 
     data = {
         "source": "{}assets/{}/".format(url, asset),
-        "type": type_
-    }
+        "type": type_,
+        "lang": lang_,
+        "fields_from_all_versions": fields_from_all_versions_,
+        "hierarchy_in_labels": hierarchy_in_labels_,
+        "group_sep": group_sep_    }
     response = requests.post(
         "{}exports/".format(url),
         data=data,
@@ -89,10 +99,24 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "create":
             type_ = default_type
+            lang_ = default_lang
+            fields_from_all_versions_ = default_fields_from_all_versions
+            hierarchy_in_labels_ = default_hierarchy_in_labels
+            group_sep_ = default_group_sep
             if len(sys.argv) > 2:
                 type_ = sys.argv[2]
+                if len(sys.argv) > 3:
+                    lang_ = sys.argv[3]
+                    if len(sys.argv) > 4:
+                        fields_from_all_versions_ = sys.argv[4]
+                        if len(sys.argv) > 5:
+                            hierarchy_in_labels_ = sys.argv[5]
+                            if len(sys.argv) > 6:
+                                group_sep_ = sys.argv[6]
+                                
 
-            create_export(type_)
+
+            create_export(type_,lang_,fields_from_all_versions_,hierarchy_in_labels_,group_sep_)
 
         elif sys.argv[1] == "list":
             list_exports()
