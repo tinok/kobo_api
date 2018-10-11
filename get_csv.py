@@ -15,88 +15,240 @@ import os
 # $>export KOBO_ASSET=newasset
 # $>export KOBO_URL=newurl
 # ```
-user = "username"
-passw = "password"
-asset = "koboassetid"
-url = "https://kobo.humanitarianresponse.info/"
-default_type = "csv"
+USERNAME = "username"
+PASSWD = "password"
+ASSET = "koboassetid"
+DOMAIN = "https://kobo.humanitarianresponse.info/"
+
+# These variables define the default export. Each value can be overwritten when running the `create' command
+# e.g. `create xml 'English (en_US)' true'. It's possible to skip some arguments at the end but they need to be passed in the same order. 
+DEFAULT_TYPE = "csv"
+DEFAULT_LANG = "xml"
+DEFAULT_FIELDS_FROM_ALL_VERSIONS = "true"
+DEFAULT_HIERARCHY_IN_LABELS = "false"
+DEFAULT_GROUP_SEP = "/"
+
+VALID_ARGUMENTS = {
+    "create": {
+        "asset": ["-a", "--asset"],
+        "domain": ["-d", "--domain"],
+        "all_fields": ["-f", "--fields"],
+        "group_sep": ["-g", "--group-sep"],
+        "hierarchy": ["-H", "--hierarchy"],
+        "lang": ["-l", "--lang"],
+        "passwd": ["-p", "--passwd"],
+        "type_": ["-t", "--type"],
+        "username": ["-u", "--username"]
+    },
+    "list": {
+        "asset": ["-a", "--asset"],
+        "domain": ["-d", "--domain"],
+        "passwd": ["-p", "--passwd"],
+        "username": ["-u", "--username"]
+    },
+    "latest": {
+        "asset": ["-a", "--asset"],
+        "domain": ["-d", "--domain"],
+        "passwd": ["-p", "--passwd"],
+        "username": ["-u", "--username"]
+    }
+}
 
 
-def parse_env_variables():
-    return os.getenv("KOBO_USER", user), \
-           os.getenv("KOBO_PASSW", passw), \
-           os.getenv("KOBO_ASSET", asset), \
-           os.getenv("KOBO_URL", url), \
-
-def create_export(type_="csv"):
+def create_export(asset, username, passwd, domain, type_=DEFAULT_TYPE, lang=DEFAULT_LANG,
+                  all_fields=DEFAULT_FIELDS_FROM_ALL_VERSIONS,
+                  hierarchy=DEFAULT_HIERARCHY_IN_LABELS, group_sep=DEFAULT_GROUP_SEP):
     """
     Creates a new export.
     Prints the response of API if it's successful.
+
+    :param asset: str.
+    :param username: str.
+    :param passwd: str.
+    :param domain: str.
     :param type_: str.
+    :param lang: str.
+    :param all_fields: str. true|false
+    :param hierarchy: str. true|false
+    :param group_sep: str. "/"
     """
 
-    if type_ not in ["csv", "json"]:
-        print("Unsupported format")
+    if type_ not in ["csv", "xls"]:
+        print("Only csv and xls are supported with this method")
         sys.exit()
 
     data = {
-        "source": "{}assets/{}/".format(url, asset),
-        "type": type_
+        "source": "{}assets/{}/".format(domain, asset),
+        "type": type_,
+        "lang": lang,
+        "fields_from_all_versions": _str_bool(all_fields),
+        "hierarchy_in_labels": _str_bool(hierarchy),
+        "group_sep": group_sep
     }
+
     response = requests.post(
-        "{}exports/".format(url),
+        "{}exports/".format(domain),
         data=data,
-        auth=(user, passw))
+        auth=(username, passwd))
     response.raise_for_status()
 
     print(response.status_code)
     print(response.text)
 
-# see previous exports created
-def list_exports():
+
+def list_exports(asset, username, passwd, domain):
     """
     Prints response of API for all exports
-    :param type_: str.
     """
-    response = _get_exports()
+    response = _get_exports(asset, username, passwd, domain)
     print(response.json())
 
-def latest_url():
+
+def latest_url(asset, username, passwd, domain):
     """
     Prints url of the latest created export.
     """
-    response = _get_exports()
+    response = _get_exports(asset, username, passwd, domain)
     json_ = response.json()
     result = json_.get("results")[-1]
     print(result.get("result"))
 
-def _get_exports():
+
+def _bad_syntax():
+    print("Bad syntax. Please `python get_csv.py -h` for help")
+    sys.exit()
+
+
+def _help():
+    print(("Usage: python get_csv.py [command] [options]\n"
+           "\n"
+           "    Command 'create'\n"
+           "        Create a new export\n"
+           "\n"
+           "        Options:\n"
+           "          -a, --asset\n"
+           "                UID of the asset\n"
+           "          -d, --domain\n"
+           "                Domain name\n"
+           "          -f, --fields\n"
+           "                Include fields from all versions. Default: `true`\n"
+           "          -g, --group-sep\n"
+           "                Groups separator. Default: `/`\n"
+           "          -H, --hierarchy\n"
+           "                Hierarchy in labels. Default: `false`\n"
+           "          -l, --lang\n"
+           "                Language. Default: `xml`\n"
+           "          -p, --passwd\n"
+           "                User's password\n"    
+           "          -t, --type\n"
+           "                Type of the export. `xls` or `csv`. Default: `csv`\n"
+           "          -u, --username\n"
+           "                User's username\n"
+           "\n"
+           "    Command 'list'\n"
+           "        Print response of API for all exports\n"
+           "\n"
+           "        Options:\n"
+           "          -a, --asset\n"
+           "                UID of the asset\n"
+           "          -d, --domain\n"
+           "                Domain name\n"
+           "          -p, --passwd\n"
+           "                User's password\n"
+           "          -u, --username\n"
+           "                User's username\n"
+           "\n"
+           "    Command 'latest'\n"
+           "        Print url of latest export\n"
+           "\n"
+           "        Options:\n"
+           "          -a, --asset\n"
+           "                UID of the asset\n"
+           "          -d, --domain\n"
+           "                Domain name\n"
+           "          -p, --passwd\n"
+           "                User's password\n"
+           "          -u, --username\n"
+           "                User's username"))
+
+    sys.exit()
+
+
+def _get_exports(asset, username, passwd, domain):
     payload = {"q": "source:{}".format(asset)}
     response = requests.get(
-        "{}exports/".format(url),
+        "{}exports/".format(domain),
         params=payload,
-        auth=(user, passw))
+        auth=(username, passwd))
     response.raise_for_status()
 
     return response
 
-if __name__ == "__main__":
+
+def _parse_arguments():
+    """
+    Parses command line arguments to detect which method to call and which parameters to pass to this method
+    :return: tuple. (method, kwargs)
+    """
 
     # Overwrite local credentials with
     # environment variables if any
-    user, passw, asset, url  = parse_env_variables()
+    username, passwd, asset, domain  = _parse_env_variables()
+    kwargs = {
+        "username": username,
+        "passwd": passwd,
+        "asset": asset,
+        "domain": domain
+    }
+    method_ = "create"
+
+    def _find_key(method_, needle):
+        for key, options in VALID_ARGUMENTS.get(method_).items():
+            if needle in options:
+                return key
+        return None
 
     if len(sys.argv) > 1:
-        if sys.argv[1] == "create":
-            type_ = default_type
-            if len(sys.argv) > 2:
-                type_ = sys.argv[2]
-            create_export(type_)
-        elif sys.argv[1] == "list":
-            list_exports()
-        elif sys.argv[1] == "latest":
-            latest_url()
-        else:
-            print("Invalid choice")
+        method_ = sys.argv[1]
+        if method_ in ["-h", "--help"]:
+            _help()
+        elif method_ not in VALID_ARGUMENTS.keys():
+            _bad_syntax()
+
+        try:
+            for index, arg in enumerate(sys.argv[2::2]):
+                key = _find_key(method_, arg)
+                if key:
+                    kwargs[key] = sys.argv[index * 2 + 3]
+                else:
+                    _bad_syntax()
+        except Exception as e:
+            print(str(e))
+            _bad_syntax()
+
+    return method_, kwargs
+
+
+def _parse_env_variables():
+    return os.getenv("KOBO_USER", USERNAME), \
+           os.getenv("KOBO_PASSW", PASSWD), \
+           os.getenv("KOBO_ASSET", ASSET), \
+           os.getenv("KOBO_DOMAIN", DOMAIN), \
+
+
+def _str_bool(value):
+
+    if isinstance(value, bool):
+        return "true" if value else "false"
     else:
-        create_export(default_type)
+        return "true" if str(value).lower() == "true" else "false"
+
+if __name__ == "__main__":
+
+    method, kwargs = _parse_arguments()
+    methods = {
+        "create": create_export,
+        "list": list_exports,
+        "latest": latest_url
+    }
+    methods[method](**kwargs)
