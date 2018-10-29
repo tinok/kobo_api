@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-# this file creates a new csv export for a given kobo asset and gets a list of all previous exports
+# This file creates a new csv export for a given kobo asset and gets a list of all previous exports
+# For help run `python get_csv.py -h'
 
 # import requests module
 import requests
@@ -21,7 +22,7 @@ ASSET = "koboassetid"
 DOMAIN = "https://kobo.humanitarianresponse.info/"
 
 # These variables define the default export. Each value can be overwritten when running the `create' command
-# e.g. `create xml 'English (en_US)' true'. It's possible to skip some arguments at the end but they need to be passed in the same order. 
+# e.g. `create -t csv -l 'English (en_US)' -f true'. 
 DEFAULT_TYPE = "csv"
 DEFAULT_LANG = "xml"
 DEFAULT_FIELDS_FROM_ALL_VERSIONS = "true"
@@ -73,8 +74,8 @@ def create_export(asset, username, passwd, domain, type_=DEFAULT_TYPE, lang=DEFA
     :param group_sep: str. "/"
     """
 
-    if type_ not in ["csv", "xls"]:
-        print("Only csv and xls are supported with this method")
+    if type_ not in ["csv", "xls", "spss_labels"]:
+        print("Only csv, xls, and spss_labels are supported with this method")
         sys.exit()
 
     data = {
@@ -141,7 +142,7 @@ def _help():
            "          -p, --passwd\n"
            "                User's password\n"    
            "          -t, --type\n"
-           "                Type of the export. `xls` or `csv`. Default: `csv`\n"
+           "                Type of the export. `xls` or `csv` or `spss_labels`. Default: `csv`\n"
            "          -u, --username\n"
            "                User's username\n"
            "\n"
