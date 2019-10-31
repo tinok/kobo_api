@@ -2,6 +2,9 @@
 
 This repo will feature sample code/snippets to pull or push data (or form definitions) using the new [KoBoToolbox API ](https://github.com/kobotoolbox/kpi/)
 
+## purge-all-assets.py
+This snippet allows quickly deleting multiple assets from the command line and is useful if the user has many test or draft forms. 
+
 ## get_csv.py
 
 [get_csv.py](https://github.com/tinok/kobo_api/blob/master/get_csv.py) is a command line script written in Python that allows users to 
@@ -11,7 +14,7 @@ This repo will feature sample code/snippets to pull or push data (or form defini
 * Get the URL of the most recent export
 * Uses basic authentication (username and password), which can be entered into the file or saved as an environment variable 
 
-## Usage instructions
+### Usage instructions
 * Requires Python on your computer/virtual machine.
 * Download the file or clone the repository
 * Edit the [four variables](https://github.com/tinok/kobo_api/blob/master/get_csv.py#L19-L22) specific to your account and project. Note that `koboassetid` refers to the unique string included in the URL of the project, e.g. `https://kobo.humanitarianresponse.info/#/forms/aLLE5AEVsxzwiBCcinzWrF/summary`.
